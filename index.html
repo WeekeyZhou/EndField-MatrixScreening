@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>明日方舟：终末地 · 基质狗粮查询</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0c10;
+      --bg-panel: #12151c;
+      --bg-card: #1a1e28;
+      --bg-card-hover: #222738;
+      --border: #2a2f3e;
+      --border-active: #f0c040;
+      --accent: #f0c040;
+      --accent-dim: rgba(240, 192, 64, 0.15);
+      --accent-glow: rgba(240, 192, 64, 0.3);
+      --text: #e8e6e1;
+      --text-dim: #8a8d96;
+      --text-muted: #555966;
+      --star6: #ff9d2f;
+      --star5: #c4a0ff;
+      --danger: #ff4d6a;
+      --tag-base: #3a7bda;
+      --tag-extra: #2eb88a;
+      --tag-skill: #d45dba;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === Background atmosphere === */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(240, 192, 64, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(58, 123, 218, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* === Header === */
+    .header {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 28px 20px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(240, 192, 64, 0.04) 0%, transparent 100%);
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+      opacity: 0.8;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .header h1 span {
+      color: var(--accent);
+    }
+
+    .header-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 300;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* === Main container === */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* === Filter Section === */
+    .filter-section {
+      margin-bottom: 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .filter-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .filter-section.base::before {
+      background: var(--tag-base);
+    }
+
+    .filter-section.extra::before {
+      background: var(--tag-extra);
+    }
+
+    .filter-section.skill::before {
+      background: var(--tag-skill);
+    }
+
+    .filter-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .base .filter-label .dot {
+      background: var(--tag-base);
+      box-shadow: 0 0 8px var(--tag-base);
+    }
+
+    .extra .filter-label .dot {
+      background: var(--tag-extra);
+      box-shadow: 0 0 8px var(--tag-extra);
+    }
+
+    .skill .filter-label .dot {
+      background: var(--tag-skill);
+      box-shadow: 0 0 8px var(--tag-skill);
+    }
+
+    .filter-label .count {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .tag-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Noto Sans SC', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .tag-btn:hover {
+      border-color: #4a4f60;
+      color: var(--text);
+      background: var(--bg-card-hover);
+    }
+
+    .base .tag-btn.active {
+      border-color: var(--tag-base);
+      background: rgba(58, 123, 218, 0.15);
+      color: #7ab3ff;
+      box-shadow: 0 0 12px rgba(58, 123, 218, 0.15);
+    }
+
+    .extra .tag-btn.active {
+      border-color: var(--tag-extra);
+      background: rgba(46, 184, 138, 0.15);
+      color: #6edcb8;
+      box-shadow: 0 0 12px rgba(46, 184, 138, 0.15);
+    }
+
+    .skill .tag-btn.active {
+      border-color: var(--tag-skill);
+      background: rgba(212, 93, 186, 0.15);
+      color: #e899d8;
+      box-shadow: 0 0 12px rgba(212, 93, 186, 0.15);
+    }
+
+    /* === Reset button === */
+    .reset-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .selection-summary {
+      font-size: 13px;
+      color: var(--text-dim);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .selection-summary .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .chip.base-chip {
+      background: rgba(58, 123, 218, 0.12);
+      color: #7ab3ff;
+    }
+
+    .chip.extra-chip {
+      background: rgba(46, 184, 138, 0.12);
+      color: #6edcb8;
+    }
+
+    .chip.skill-chip {
+      background: rgba(212, 93, 186, 0.12);
+      color: #e899d8;
+    }
+
+    .reset-btn {
+      padding: 8px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Noto Sans SC', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .reset-btn:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(255, 77, 106, 0.08);
+    }
+
+    /* === Results === */
+    .results-header {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .results-header .num {
+      color: var(--accent);
+      font-size: 20px;
+    }
+
+    .weapon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .weapon-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .weapon-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 60px;
+      height: 60px;
+      border-radius: 0 12px 0 40px;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
+    .weapon-card.star-6::after {
+      background: var(--star6);
+    }
+
+    .weapon-card.star-5::after {
+      background: var(--star5);
+    }
+
+    .weapon-card:hover {
+      border-color: #3a3f50;
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .weapon-card.perfect-match {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(240, 192, 64, 0.06) 0%, var(--bg-panel) 100%);
+      box-shadow: 0 0 20px rgba(240, 192, 64, 0.08);
+    }
+
+    .weapon-card.perfect-match::before {
+      content: '★ 完美匹配';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(240, 192, 64, 0.12);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .weapon-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .weapon-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .weapon-stars {
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    .weapon-card.star-6 .weapon-stars {
+      color: var(--star6);
+    }
+
+    .weapon-card.star-5 .weapon-stars {
+      color: var(--star5);
+    }
+
+    .weapon-type-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+    }
+
+    .weapon-attrs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .weapon-attrs .attr-tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 5px;
+    }
+
+    .attr-tag.base {
+      background: rgba(58, 123, 218, 0.12);
+      color: #7ab3ff;
+    }
+
+    .attr-tag.extra {
+      background: rgba(46, 184, 138, 0.12);
+      color: #6edcb8;
+    }
+
+    .attr-tag.skill {
+      background: rgba(212, 93, 186, 0.12);
+      color: #e899d8;
+    }
+
+    .attr-tag.matched {
+      font-weight: 700;
+    }
+
+    .attr-tag.base.matched {
+      background: rgba(58, 123, 218, 0.25);
+      box-shadow: 0 0 6px rgba(58, 123, 218, 0.2);
+    }
+
+    .attr-tag.extra.matched {
+      background: rgba(46, 184, 138, 0.25);
+      box-shadow: 0 0 6px rgba(46, 184, 138, 0.2);
+    }
+
+    .attr-tag.skill.matched {
+      background: rgba(212, 93, 186, 0.25);
+      box-shadow: 0 0 6px rgba(212, 93, 186, 0.2);
+    }
+
+    .weapon-maps {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .weapon-maps .map-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+    }
+
+    /* === Empty state === */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .empty-state .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      opacity: 0.6;
+    }
+
+    /* === No match state === */
+    .no-match {
+      text-align: center;
+      padding: 48px 20px;
+      background: var(--bg-panel);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+    }
+
+    .no-match .icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    .no-match p {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .no-match .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* === Animations === */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .weapon-card {
+      animation: fadeIn 0.3s ease both;
+    }
+
+    /* === Responsive === */
+    @media (max-width: 600px) {
+      .header {
+        padding: 20px 16px 14px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+        letter-spacing: 1px;
+      }
+
+      .header-subtitle {
+        font-size: 10px;
+        letter-spacing: 4px;
+        margin-bottom: 8px;
+      }
+
+      .header-desc {
+        font-size: 12px;
+      }
+
+      .container {
+        padding: 12px 12px 40px;
+      }
+
+      .filter-section {
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+      }
+
+      .filter-label {
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+
+      .tag-group {
+        gap: 6px;
+      }
+
+      .tag-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+      }
+
+      .weapon-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .weapon-card {
+        padding: 14px 16px;
+        border-radius: 8px;
+      }
+
+      .reset-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .reset-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .selection-summary {
+        font-size: 12px;
+      }
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="header-subtitle">Arknights: Endfield</div>
+    <h1>基质<span>狗粮</span>查询</h1>
+    <p class="header-desc">选择基质的三个属性，查询是否完美适配当前某把武器，注意此计算器不能贷款未来</p>
+  </div>
+
+  <div class="container">
+
+    <!-- 基础属性 -->
+    <div class="filter-section base">
+      <div class="filter-label">
+        <span class="dot"></span>
+        基础属性
+        <span class="count">选择 1 项</span>
+      </div>
+      <div class="tag-group" id="baseGroup"></div>
+    </div>
+
+    <!-- 附加属性 -->
+    <div class="filter-section extra">
+      <div class="filter-label">
+        <span class="dot"></span>
+        附加属性
+        <span class="count">选择 1 项</span>
+      </div>
+      <div class="tag-group" id="extraGroup"></div>
+    </div>
+
+    <!-- 技能属性 -->
+    <div class="filter-section skill">
+      <div class="filter-label">
+        <span class="dot"></span>
+        技能属性
+        <span class="count">选择 1 项</span>
+      </div>
+      <div class="tag-group" id="skillGroup"></div>
+    </div>
+
+    <!-- Reset & Summary -->
+    <div class="reset-bar">
+      <div class="selection-summary" id="selectionSummary"></div>
+      <button class="reset-btn" onclick="resetAll()">清除筛选</button>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsHeader" class="results-header"></div>
+    <div id="results"></div>
+  </div>
+
+  <footer class="footer">
+    Powered by <span>Opus 4.6</span> and <span>Weekey Zhou</span>
+  </footer>
+
+  <script>
+    // ============ 武器数据 ============
+    const weapons = [
+      { "id": 1, "name": "白夜新星", "star": 6, "type": "单手剑", "baseAttr": "主能力", "extraAttr": "源石技艺", "skillAttr": "附术", "maps": ["矿脉园区", "供能高地"] },
+      { "id": 2, "name": "显赫声名", "star": 6, "type": "单手剑", "baseAttr": "主能力", "extraAttr": "物理伤害", "skillAttr": "残暴", "maps": ["矿脉园区", "供能高地"] },
+      { "id": 3, "name": "热熔切割器", "star": 6, "type": "单手剑", "baseAttr": "意志", "extraAttr": "攻击力", "skillAttr": "流转", "maps": ["枢纽区", "供能高地", "武陵城"] },
+      { "id": 4, "name": "扶摇", "star": 6, "type": "单手剑", "baseAttr": "主能力", "extraAttr": "暴击率", "skillAttr": "夜幕", "maps": ["矿脉园区", "武陵城"] },
+      { "id": 5, "name": "黯色火炬", "star": 6, "type": "单手剑", "baseAttr": "智识", "extraAttr": "灼热伤害", "skillAttr": "附术", "maps": ["矿脉园区", "供能高地"] },
+      { "id": 6, "name": "熔铸火焰", "star": 6, "type": "单手剑", "baseAttr": "智识", "extraAttr": "攻击力", "skillAttr": "夜幕", "maps": ["武陵城"] },
+      { "id": 7, "name": "不知归", "star": 6, "type": "单手剑", "baseAttr": "意志", "extraAttr": "攻击力", "skillAttr": "流转", "maps": ["枢纽区", "供能高地", "武陵城"] },
+      { "id": 8, "name": "宏愿", "star": 6, "type": "单手剑", "baseAttr": "敏捷", "extraAttr": "攻击力", "skillAttr": "附术", "maps": ["源石研究园", "供能高地"] },
+      { "id": 9, "name": "仰止", "star": 5, "type": "单手剑", "baseAttr": "敏捷", "extraAttr": "物理伤害", "skillAttr": "夜幕", "maps": ["矿脉园区"] },
+      { "id": 10, "name": "OBJ轻芒", "star": 5, "type": "单手剑", "baseAttr": "敏捷", "extraAttr": "攻击力", "skillAttr": "流转", "maps": ["枢纽区", "供能高地", "武陵城"] },
+      { "id": 11, "name": "十二问", "star": 5, "type": "单手剑", "baseAttr": "敏捷", "extraAttr": "攻击力", "skillAttr": "附术", "maps": ["源石研究园", "供能高地"] },
+      { "id": 12, "name": "逐鳞3.0", "star": 5, "type": "单手剑", "baseAttr": "力量", "extraAttr": "寒冷伤害", "skillAttr": "压制", "maps": ["枢纽区", "源石研究园", "矿脉园区"] },
+      { "id": 13, "name": "坚城铸造者", "star": 5, "type": "单手剑", "baseAttr": "智识", "extraAttr": "终结技充能效率", "skillAttr": "昂扬", "maps": ["源石研究园"] },
+      { "id": 14, "name": "钢铁余音", "star": 5, "type": "单手剑", "baseAttr": "敏捷", "extraAttr": "物理伤害", "skillAttr": "技巧", "maps": ["源石研究园", "矿脉园区"] },
+      { "id": 15, "name": "破碎君王", "star": 6, "type": "双手剑", "baseAttr": "力量", "extraAttr": "暴击率", "skillAttr": "粉碎", "maps": ["供能高地", "武陵城"] },
+      { "id": 16, "name": "昔日精品", "star": 6, "type": "双手剑", "baseAttr": "意志", "extraAttr": "生命", "skillAttr": "效益", "maps": ["矿脉园区"] },
+      { "id": 17, "name": "典范", "star": 6, "type": "双手剑", "baseAttr": "主能力", "extraAttr": "攻击力", "skillAttr": "压制", "maps": ["枢纽区", "源石研究园"] },
+      { "id": 18, "name": "赫拉芬格", "star": 6, "type": "双手剑", "baseAttr": "力量", "extraAttr": "攻击力", "skillAttr": "迸发", "maps": ["枢纽区", "武陵城"] },
+      { "id": 19, "name": "大雷斑", "star": 6, "type": "双手剑", "baseAttr": "力量", "extraAttr": "生命", "skillAttr": "医疗", "maps": ["供能高地", "武陵城"] },
+      { "id": 20, "name": "OBJ重荷", "star": 5, "type": "双手剑", "baseAttr": "力量", "extraAttr": "生命", "skillAttr": "效益", "maps": ["矿脉园区"] },
+      { "id": 21, "name": "终点之声", "star": 5, "type": "双手剑", "baseAttr": "力量", "extraAttr": "生命", "skillAttr": "医疗", "maps": ["供能高地", "武陵城"] },
+      { "id": 22, "name": "古渠", "star": 5, "type": "双手剑", "baseAttr": "力量", "extraAttr": "源石技艺", "skillAttr": "残暴", "maps": ["矿脉园区", "供能高地"] },
+      { "id": 23, "name": "探骊", "star": 5, "type": "双手剑", "baseAttr": "力量", "extraAttr": "终结技充能效率", "skillAttr": "迸发", "maps": ["枢纽区", "武陵城"] },
+      { "id": 24, "name": "JET", "star": 6, "type": "长柄武器", "baseAttr": "主能力", "extraAttr": "攻击力", "skillAttr": "压制", "maps": ["枢纽区", "源石研究园"] },
+      { "id": 25, "name": "骁勇", "star": 6, "type": "长柄武器", "baseAttr": "敏捷", "extraAttr": "物理伤害", "skillAttr": "技巧", "maps": ["源石研究园", "矿脉园区"] },
+      { "id": 26, "name": "负山", "star": 6, "type": "长柄武器", "baseAttr": "敏捷", "extraAttr": "物理伤害", "skillAttr": "效益", "maps": ["源石研究园", "矿脉园区"] },
+      { "id": 27, "name": "向心之引", "star": 5, "type": "长柄武器", "baseAttr": "意志", "extraAttr": "电磁伤害", "skillAttr": "压制", "maps": ["枢纽区", "源石研究园"] },
+      { "id": 28, "name": "OBJ尖峰", "star": 5, "type": "长柄武器", "baseAttr": "意志", "extraAttr": "物理伤害", "skillAttr": "附术", "maps": ["源石研究园", "矿脉园区", "供能高地"] },
+      { "id": 29, "name": "嵌合正义", "star": 5, "type": "长柄武器", "baseAttr": "力量", "extraAttr": "终结技充能效率", "skillAttr": "残暴", "maps": ["武陵城"] },
+      { "id": 30, "name": "同类相食", "star": 6, "type": "手铳", "baseAttr": "主能力", "extraAttr": "法术", "skillAttr": "附术", "maps": ["源石研究园"] },
+      { "id": 31, "name": "楔子", "star": 6, "type": "手铳", "baseAttr": "主能力", "extraAttr": "暴击率", "skillAttr": "附术", "maps": ["源石研究园", "矿脉园区", "供能高地"] },
+      { "id": 32, "name": "领航者", "star": 6, "type": "手铳", "baseAttr": "智识", "extraAttr": "寒冷伤害", "skillAttr": "附术", "maps": ["源石研究园", "矿脉园区"] },
+      { "id": 33, "name": "艺术暴君", "star": 6, "type": "手铳", "baseAttr": "智识", "extraAttr": "暴击率", "skillAttr": "切骨", "maps": ["源石研究园", "供能高地", "武陵城"] },
+      { "id": 34, "name": "理性告别", "star": 5, "type": "手铳", "baseAttr": "力量", "extraAttr": "灼热伤害", "skillAttr": "追袭", "maps": ["供能高地"] },
+      { "id": 35, "name": "OBJ迅极", "star": 5, "type": "手铳", "baseAttr": "敏捷", "extraAttr": "终结技充能效率", "skillAttr": "迸发", "maps": ["枢纽区", "武陵城"] },
+      { "id": 36, "name": "作品：众生", "star": 5, "type": "手铳", "baseAttr": "敏捷", "extraAttr": "法术", "skillAttr": "附术", "maps": ["源石研究园"] },
+      { "id": 37, "name": "骑士精神", "star": 6, "type": "施术单元", "baseAttr": "意志", "extraAttr": "生命", "skillAttr": "医疗", "maps": ["供能高地", "武陵城"] },
+      { "id": 38, "name": "遗忘", "star": 6, "type": "施术单元", "baseAttr": "智识", "extraAttr": "法术", "skillAttr": "夜幕", "maps": ["武陵城"] },
+      { "id": 39, "name": "爆破单元", "star": 6, "type": "施术单元", "baseAttr": "主能力", "extraAttr": "源石技艺", "skillAttr": "迸发", "maps": ["枢纽区", "矿脉园区"] },
+      { "id": 40, "name": "作品：蚀迹", "star": 6, "type": "施术单元", "baseAttr": "意志", "extraAttr": "自然伤害", "skillAttr": "压制", "maps": ["枢纽区", "源石研究园", "矿脉园区"] },
+      { "id": 41, "name": "沧溟星梦", "star": 6, "type": "施术单元", "baseAttr": "智识", "extraAttr": "治疗效率", "skillAttr": "附术", "maps": ["矿脉园区", "供能高地"] },
+      { "id": 42, "name": "使命必达", "star": 6, "type": "施术单元", "baseAttr": "意志", "extraAttr": "终结技充能效率", "skillAttr": "追袭", "maps": ["枢纽区", "源石研究园"] },
+      { "id": 43, "name": "OBJ术识", "star": 5, "type": "施术单元", "baseAttr": "智识", "extraAttr": "源石技艺", "skillAttr": "追袭", "maps": ["枢纽区", "供能高地"] },
+      { "id": 44, "name": "布道自由", "star": 5, "type": "施术单元", "baseAttr": "意志", "extraAttr": "治疗效率", "skillAttr": "医疗", "maps": ["供能高地", "武陵城"] },
+      { "id": 45, "name": "迷失荒野", "star": 5, "type": "施术单元", "baseAttr": "智识", "extraAttr": "电磁伤害", "skillAttr": "附术", "maps": ["源石研究园"] },
+      { "id": 46, "name": "莫奈何", "star": 5, "type": "施术单元", "baseAttr": "意志", "extraAttr": "终结技充能效率", "skillAttr": "昂扬", "maps": ["源石研究园"] },
+      { "id": 47, "name": "悼忘诗", "star": 5, "type": "施术单元", "baseAttr": "智识", "extraAttr": "攻击力", "skillAttr": "夜幕", "maps": ["武陵城"] }
+    ];
+
+    // ============ 属性选项 ============
+    const baseAttrs = ["主能力", "力量", "敏捷", "智识", "意志"];
+    const extraAttrs = [...new Set(weapons.map(w => w.extraAttr))].sort();
+    const skillAttrs = [...new Set(weapons.map(w => w.skillAttr))].sort();
+
+    // ============ 状态 ============
+    let selected = { base: null, extra: null, skill: null };
+
+    // ============ 初始化 ============
+    function init() {
+      renderTags('baseGroup', baseAttrs, 'base');
+      renderTags('extraGroup', extraAttrs, 'extra');
+      renderTags('skillGroup', skillAttrs, 'skill');
+      updateResults();
+    }
+
+    function renderTags(containerId, items, group) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = items.map(item =>
+        `<button class="tag-btn" data-group="${group}" data-value="${item}" onclick="toggleTag('${group}','${item}',this)">${item}</button>`
+      ).join('');
+    }
+
+    function toggleTag(group, value, el) {
+      // 同组单选切换
+      if (selected[group] === value) {
+        selected[group] = null;
+        el.classList.remove('active');
+      } else {
+        // 取消同组其他
+        document.querySelectorAll(`.tag-btn[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+        selected[group] = value;
+        el.classList.add('active');
+      }
+      updateResults();
+    }
+
+    function resetAll() {
+      selected = { base: null, extra: null, skill: null };
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+      updateResults();
+    }
+
+    function updateResults() {
+      const resultsDiv = document.getElementById('results');
+      const headerDiv = document.getElementById('resultsHeader');
+      const summaryDiv = document.getElementById('selectionSummary');
+
+      // 更新已选摘要
+      const chips = [];
+      if (selected.base) chips.push(`<span class="chip base-chip">${selected.base}</span>`);
+      if (selected.extra) chips.push(`<span class="chip extra-chip">${selected.extra}</span>`);
+      if (selected.skill) chips.push(`<span class="chip skill-chip">${selected.skill}</span>`);
+      summaryDiv.innerHTML = chips.length > 0 ? `已选：${chips.join('')}` : '<span style="color:var(--text-muted)">未选择任何属性</span>';
+
+      // 无选择时
+      const hasAny = selected.base || selected.extra || selected.skill;
+      if (!hasAny) {
+        headerDiv.innerHTML = '';
+        resultsDiv.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⬡</div>
+        <p>请在上方选择基质属性开始查询</p>
+        <div class="hint">选择基础属性 + 附加属性 + 技能属性，查找完美匹配的武器</div>
+      </div>`;
+        return;
+      }
+
+      // 筛选：满足所有已选条件
+      const filtered = weapons.filter(w => {
+        if (selected.base && w.baseAttr !== selected.base) return false;
+        if (selected.extra && w.extraAttr !== selected.extra) return false;
+        if (selected.skill && w.skillAttr !== selected.skill) return false;
+        return true;
+      });
+
+      // 计算已选条件数
+      const condCount = [selected.base, selected.extra, selected.skill].filter(Boolean).length;
+      const allThree = condCount === 3;
+
+      if (filtered.length === 0) {
+        headerDiv.innerHTML = '';
+        resultsDiv.innerHTML = `
+      <div class="no-match">
+        <div class="icon">✕</div>
+        <p>暂且没有匹配的5星或6星武器</p>
+        <div class="sub">尝试更换其中一个属性再查询</div>
+      </div>`;
+        return;
+      }
+
+      // 排序：6星在前，然后按名称
+      filtered.sort((a, b) => b.star - a.star || a.name.localeCompare(b.name, 'zh'));
+
+      headerDiv.innerHTML = `匹配结果：<span class="num">${filtered.length}</span> 把武器`;
+
+      resultsDiv.innerHTML = '<div class="weapon-grid">' + filtered.map((w, i) => {
+        const isPerfect = allThree;
+        const baseMatched = selected.base === w.baseAttr;
+        const extraMatched = selected.extra === w.extraAttr;
+        const skillMatched = selected.skill === w.skillAttr;
+
+        return `
+      <div class="weapon-card star-${w.star} ${isPerfect ? 'perfect-match' : ''}" style="animation-delay: ${i * 0.04}s">
+        <div class="weapon-name">${w.name}</div>
+        <div class="weapon-meta">
+          <span class="weapon-stars">${'★'.repeat(w.star)}</span>
+          <span class="weapon-type-badge">${w.type}</span>
+        </div>
+        <div class="weapon-attrs">
+          <span class="attr-tag base ${baseMatched ? 'matched' : ''}">${w.baseAttr}</span>
+          <span class="attr-tag extra ${extraMatched ? 'matched' : ''}">${w.extraAttr}</span>
+          <span class="attr-tag skill ${skillMatched ? 'matched' : ''}">${w.skillAttr}</span>
+        </div>
+        <div class="weapon-maps">
+          ${w.maps.map(m => `<span class="map-tag">${m}</span>`).join('')}
+        </div>
+      </div>`;
+      }).join('') + '</div>';
+    }
+
+    init();
+  </script>
+
+</body>
+
+</html>
